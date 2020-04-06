@@ -1,0 +1,4 @@
+	LivingRoom	Bedroom	
+	TownPath		
+ProfsLab	TownPath	TownPath	MysteriousPath
+	CousinsHouse		
