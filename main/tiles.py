@@ -1,13 +1,12 @@
 """Describes the tiles in the world space."""
 
-import items, enemies, actions, world, dialoge, os
-import sys, time, random
+import items, enemies, actions, world, dialoge, os, game
 
 
 class MapTile:
     """The base class for a tile within the world space"""
 
-    def __init__(self, x, y, locked=False):
+    def __init__(self, x, y):
         """Creates a new tile.
 
         :param x: the x-coordinate of the tile
@@ -15,7 +14,6 @@ class MapTile:
         """
         self.x = x
         self.y = y
-        self.locked = locked
 
     def intro_text(self):
         """Information to be displayed when the player moves into this tile."""
@@ -45,80 +43,99 @@ class MapTile:
 
         return moves
 
-    @staticmethod
-    def slow_type(t):
-        typing_speed = 100  # wpm
-        for l in t:
-            sys.stdout.write(l)
-            sys.stdout.flush()
-            time.sleep(random.random() * 10.0 / typing_speed)
-
-    def displayDialoge(self, player, dialoge, talking):
-        for i in range(len(dialoge)):
-            # print(player.name.upper().center(70, "-"))
-            print(talking.upper() + ":", MapTile.slow_type(dialoge[i]))
-            input()
+    def displayDialoge(self, locName, message, talking):
+        message = message.split("\n")
+        for i in range(len(message)):
             os.system("cls")
+            print(locName.upper().center(60, "-"))
+
+            print(talking.upper() + ":")
+            dialoge.slow_type(message[i])
+            input()
 
 
 class Bedroom(MapTile):
-    def intro_text(self, the_player):
-        return """
-        You wake up with dreary eyes and get out of bed.
-        Breakfast is in the living room
-        """
+    def intro_text(self):
+        return """You wake up with dreary eyes and get out of bed.
+Breakfast is in the living room"""
 
     def modify_player(self, the_player):
         # Room has no action on player
         pass
+
+    def __str__(self):
+        return "Bedroom"
 
 
 class LivingRoom(MapTile):
-    def intro_text(self, the_player):
-        self.displayDialoge(the_player, dialoge.livingRoomDialog, "MUM")
+    def intro_text(self):
+        return "You walk into the living room as mum stands by the stove cooking eggs"
 
     def modify_player(self, the_player):
-        # Room has no action on player
-        pass
+        print("wdha")
+
+        self.displayDialoge(self.__str__(), dialoge.livingRoomDialog, "MUM")
+
+    def __str__(self):
+        return "Living room"
 
 
 class CousinsHouse(MapTile):
-    def intro_text(self, the_player):
-        f"Hi", {the_player.name}, "!", "BLUE is out at Grandpa's lab."
+    def intro_text(self):
+        return "You open the door to your couin BLUE's house and see his sister kniting"
 
     def modify_player(self, the_player):
-        pass
+        dialoge.slow_type(
+            f"BLUE'S SISTER: Hi {the_player.name}! BLUE is out at Grandpa's lab."
+        )
+
+    def __str__(self):
+        return "Blue's house"
 
 
 class ProfsLab(MapTile):
-    def intro_text(self, the_player):
-        locked = True
-        if locked:
-            print(
-                f"Yo {the_player.name} Gramps isn't around? I ran here cos' he said he had a pokemon for me."
+    locked = True
+
+    def intro_text(self):
+        return (
+            "You walk into a massive labratory and the scientist greet you as you enter"
+        )
+
+    def modify_player(self, the_player):
+        if ProfsLab.locked:
+            dialoge.slow_type(
+                f"BLUE: Yo {the_player.name} Gramps isn't around? I ran here cos' he said he had a pokemon for me."
             )
 
         else:
-            pass
+            print("yeet")
 
-    def modify_player(self, the_player):
-        pass
+    def __str__(self):
+        return "Oak Pokemon Research lab"
 
 
 class MysteriousPath(MapTile):
-    def intro_text(self, the_player):
-        self.displayDialoge(the_player, dialoge.mysteriousPathDialog, "PROF OAK")
+    def intro_text(self):
+        return "As you approch the town gates a mysterious path leads into the distance and you wonder what lies ahead"
 
     def modify_player(self, the_player):
-        pass
+        self.displayDialoge(self.__str__(), dialoge.mysteriousPathDialog, "PROF OAK")
+        the_player.move(0,3)
+        ProfsLab.locked = False
+
+    def __str__(self):
+        return "Mysterious Path"
 
 
 class TownPath(MapTile):
-    def intro_text(self, the_player):
-        self.displayDialoge(the_player, dialoge.mysteriousPathDialog, "PROF OAK")
+    def intro_text(self):
+        return "You walk along the path"
 
     def modify_player(self, the_player):
         pass
+
+    def __str__(self):
+        return "Path"
 
 
 class EmptyCavePath(MapTile):

@@ -1,4 +1,4 @@
-import os
+import sys, time, random
 
 tutorial = """Hello there! Welcome to the world of POKEMON!
 This world is inhabited by creatures called POKEMON!
@@ -20,8 +20,23 @@ It said so on TV.
 PROF OAK, next door is looking for you."""
 
 
-mysteriousPathDialog = [
-    "HEY WAIT, DON'T GO OUT ",
-    "Whew, That was close!",
-    "Wild pokemon live in tall grass",
+randomMessages = [
+    """Technology is incredible! 
+    You can now store and recall items 
+    and Pokemon as data via PC!""",
+    """ Im rasing pokemon too!
+    When they get strong they can protect me!""",
 ]
+
+
+mysteriousPathDialog = """HEY WAIT, DON'T GO OUT 
+Whew, That was close!
+Wild pokemon live in tall grass"""
+
+
+def slow_type(t):
+    typing_speed = 500  # wpm
+    for l in t:
+        sys.stdout.write(l)
+        sys.stdout.flush()
+        time.sleep(random.random() * 10.0 / typing_speed)

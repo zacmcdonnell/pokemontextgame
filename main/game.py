@@ -4,47 +4,64 @@ import os
 import dialoge
 
 
-def play():
-    os.system("cls")
-    world.load_tiles()
-    player = Player()
-    start(player)
-    room = world.tile_exists(player.location_x, player.location_y)
-    room.intro_text(player)
-    while player.is_alive() and not player.victory:
-        room = world.tile_exists(player.location_x, player.location_y)
-        room.modify_player(player)
-        # Check again since the room could have changed the player's state
-        if player.is_alive() and not player.victory:
-            print("Choose an action:\n")
-            available_actions = room.available_actions()
-            for action in available_actions:
-                print(action)
-            action_input = input("Action: ")
-            for action in available_actions:
-                if action_input == action.hotkey:
-                    player.do_action(action, **action.kwargs)
-                    break
+class Game:
+    def __init__(self):
+        self.gamePlaying = True
+        world.load_tiles()
+        self.player = Player()
+        # self.start()
+        self.main()
 
+    def getActions(self):
+        print("\nChoose an action:\n")
+        available_actions = self.room.available_actions()
+        for action in available_actions:
+            print(action)
+        action_input = input("Action: ")
+        for action in available_actions:
+            if action_input == action.hotkey:
+                os.system("cls")
+                self.player.do_action(action, **action.kwargs)
+                break
 
-def start(player):
-    # intialise the game and display welcome screen
-    os.system("cls")
-    message = dialoge.tutorial.split("\n")
-    for i in range(len(message)):
-        # print(i)
-        print("WELCOME TO POKEMON".center(70, "-"))
-        print()
-        print("PROFFESSOR OAK:", message[i])
-        if i == 7:
-            player.name = input("> ")
-            print("Right! So your name is " + player.name + "!")
-        elif i == 10:
-            name = input()
-            print("That's right! I remember now! His name is " + name + "!")
-        input()
+    def main(self):
+        while self.gamePlaying:
+            if not self.player.is_alive() and not self.player.victory:
+                print("ded")
+            else:
+                self.room = world.tile_exists(
+                    self.player.location_x, self.player.location_y
+                )
+                print(self.room.__str__().upper().center(60, "-"))
+                print(self.room.intro_text())
+                input("...")
+                self.room.modify_player(self.player)
+                self.getActions()
+                input("...")
+                os.system("cls")
+
+    def start(self):
+        # intialise the game and display welcome screen
         os.system("cls")
+
+        message = dialoge.tutorial.split("\n")
+        for i in range(len(message)):
+            print("WELCOME TO POKEMON".center(60, "-"))
+            print()
+            print("PROF. OAK:")
+            dialoge.slow_type(message[i])
+
+            if i == 7:
+                self.player.name = input("> ")
+                dialoge.slow_type("Right! So your name is " + self.player.name + "!")
+            elif i == 10:
+                name = input()
+                dialoge.slow_type(
+                    "That's right! I remember now! His name is " + name + "!"
+                )
+            input()
+            os.system("cls")
 
 
 if __name__ == "__main__":
-    play()
+    Game()
