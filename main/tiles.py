@@ -26,24 +26,29 @@ class MapTile:
         raise NotImplementedError()
 
     def adjacent_moves(self):
-        """Returns all move actions for adjacent tiles."""
+
+        directions = {
+            actions.MoveNorth(): [self.x, self.y - 1],
+            actions.MoveSouth(): [self.x, self.y + 1],
+            actions.MoveEast(): [self.x + 1, self.y],
+            actions.MoveWest(): [self.x - 1, self.y],
+        }
+
         moves = []
-        if world.tile_exists(self.x + 1, self.y):
-            moves.append(actions.MoveEast())
-        if world.tile_exists(self.x - 1, self.y):
-            moves.append(actions.MoveWest())
-        if world.tile_exists(self.x, self.y - 1):
-            moves.append(actions.MoveNorth())
-        if world.tile_exists(self.x, self.y + 1):
-            moves.append(actions.MoveSouth())
-        return moves
+        rooms = []
+        for k, v in directions.items():
+            room = world.tile_exists(v[0], v[1])
+
+            if room != None:
+                moves.append(k)
+                rooms.append(room.__str__())
+        return moves, rooms
 
     def available_actions(self):
         """Returns all of the available actions in this room."""
-        moves = self.adjacent_moves()
-        moves.append(actions.ViewInventory())
+        moves, rooms = self.adjacent_moves()
 
-        return moves
+        return moves, rooms
 
     def displayDialoge(self, locName, message, talking):
         message = message.split("\n")
@@ -127,10 +132,10 @@ class ProfsLab(MapTile):
 
 class TallGrass(MapTile):
     def __init__(self, x, y):
-        self.possiblePokemon = [pokemon.Pikachu(), pokemon.Metapod(), pokemon.Evee()]
+        self.possiblePokemon = []
         super().__init__(x, y)
         self.battleChance = 0.5
-        self.currentPokemon = pokemon.Pikachu()
+        self.currentPokemon = Player.get_current_pokemon
 
     def getRandomPokemon(self):
         return random.choice(self.possiblePokemon)
@@ -183,6 +188,11 @@ class TallGrass(MapTile):
             ]
         else:
             return self.adjacent_moves()
+
+
+class EasyTallGrass(TallGrass):
+    def __init__(self):
+        self.possiblePokemon = [pokemon.Metapod(), pokemon.Evee()]
 
 
 class MysteriousPath(TallGrass):
@@ -303,7 +313,7 @@ class EnemyRoom(MapTile):
 
     def available_actions(self):
         if self.enemy.is_alive():
-            return [actions.Flee(tile=self), actions.Attack(enemy=self.enemy)]
+            return [actions.Run(tile=self), actions.Attack(enemy=self.enemy)]
         else:
             return self.adjacent_moves()
 

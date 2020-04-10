@@ -14,9 +14,9 @@ class Game:
 
     def getActions(self):
         print("\nChoose an action:\n")
-        available_actions = self.room.available_actions()
-        for action in available_actions:
-            print(action)
+        available_actions, locations = self.room.available_actions()
+        for action, location in zip(available_actions, locations):
+            print(f"{action} ({location.__str__()})")
         action_input = input("Action: ")
         for action in available_actions:
             if action_input == action.hotkey:
@@ -25,8 +25,8 @@ class Game:
                 break
 
     def main(self):
-        self.player.location_x = 3
-        self.player.location_y = 2
+        # self.player.location_x = 3
+        # self.player.location_y = 2
         while self.gamePlaying:
             if not self.player.is_alive() and not self.player.victory:
                 print("ded")

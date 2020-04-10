@@ -8,6 +8,7 @@ class Player:
         self.inventory = [items.Gold(15), items.Rock()]
         self.hp = 100
         self.location_x, self.location_y = world.starting_position
+        self.pokemon = []
         self.victory = False
 
     def is_alive(self):
@@ -38,6 +39,23 @@ class Player:
     def move_west(self):
         self.move(dx=-1, dy=0)
 
+    def get_current_pokemon(self):
+        for i in self.pokemon:
+            if i.hp > 0:
+                return i
+            else:
+                print("not more alive pokemon")
+
+    def capturePokemon(self, wildPokemon):
+        captureChance = 0.5
+        if wildPokemon.hp < 20:
+            captureChance += 0.3
+        if random.randint(0, 1) > captureChance:
+            print(f"Oh no {wildPokemon.name} got away")
+        else:
+            print(f"horray {wildPokemon.name} was caught!")
+            self.pokemon.append(wildPokemon)
+
     def takeItem(self, item):
         self.inventory.append(item)
         print(f"{self.name} recived a {item.name}!")
@@ -48,7 +66,7 @@ class Player:
 
     def attack(self, wildPokemon):
         pass
-
+        """
     def attack(self, enemy):
         best_weapon = None
         max_dmg = 0
@@ -64,6 +82,7 @@ class Player:
             print("You killed {}!".format(enemy.name))
         else:
             print("{} HP is {}.".format(enemy.name, enemy.hp))
+    """
 
     def run(self, tile):
         pass
