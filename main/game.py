@@ -25,6 +25,8 @@ class Game:
                 break
 
     def main(self):
+        self.player.location_x = 3
+        self.player.location_y = 2
         while self.gamePlaying:
             if not self.player.is_alive() and not self.player.victory:
                 print("ded")

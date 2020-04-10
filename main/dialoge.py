@@ -30,8 +30,27 @@ randomMessages = [
 
 
 mysteriousPathDialog = """HEY WAIT, DON'T GO OUT 
-Whew, That was close!
+That was close!
 Wild pokemon live in tall grass"""
+
+mysteriousPathDialog2 = """Whew...
+A Pokemon can appear anytime in tall grass
+You need your own Pokemon for your protection. 
+I know!
+Here come with me!"""
+
+profOak = """
+BLUE? Let me think... Oh, that's right, I told you to come!
+Just wait!
+Here, you see that ball on the table?
+It's called a Poke Ball.
+It holds a Pokemon inside
+You may have it!
+Go on take it!"""
+
+profOak2 = """PROF OAK: If a wild pokemon appears
+Your Pokemon can fight against it!
+Afterward go onto the next town!"""
 
 
 def slow_type(t):

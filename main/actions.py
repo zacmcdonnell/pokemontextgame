@@ -45,9 +45,12 @@ class ViewInventory(Action):
     """Prints the player's inventory"""
 
     def __init__(self):
-        super().__init__(
-            method=Player.print_inventory, name="View inventory", hotkey="i"
-        )
+        super().__init__(method=Player.print_inventory, name="Items", hotkey="i")
+
+
+class Take(Action):
+    def __init__(self, item):
+        super().__init__(method=Player.takeItem, name="Take", hotkey="t", item=item)
 
 
 class Attack(Action):
@@ -55,7 +58,13 @@ class Attack(Action):
         super().__init__(method=Player.attack, name="Attack", hotkey="a", enemy=enemy)
 
 
-class Flee(Action):
+class Run(Action):
     def __init__(self, tile):
-        super().__init__(method=Player.flee, name="Flee", hotkey="f", tile=tile)
+        super().__init__(method=Player.run, name="Run", hotkey="r", tile=tile)
 
+
+class FollowProfOak(Action):
+    def __init__(self):
+        super().__init__(
+            method=Player.followOak, name="Follow Prof Oak", hotkey="f",
+        )

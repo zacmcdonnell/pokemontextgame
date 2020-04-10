@@ -38,6 +38,17 @@ class Player:
     def move_west(self):
         self.move(dx=-1, dy=0)
 
+    def takeItem(self, item):
+        self.inventory.append(item)
+        print(f"{self.name} recived a {item.name}!")
+
+    def followOak(self):
+        self.location_x = 0
+        self.location_y = 2
+
+    def attack(self, wildPokemon):
+        pass
+
     def attack(self, enemy):
         best_weapon = None
         max_dmg = 0
@@ -54,8 +65,5 @@ class Player:
         else:
             print("{} HP is {}.".format(enemy.name, enemy.hp))
 
-    def flee(self, tile):
-        """Moves the player randomly to an adjacent tile"""
-        available_moves = tile.adjacent_moves()
-        r = random.randint(0, len(available_moves) - 1)
-        self.do_action(available_moves[r])
+    def run(self, tile):
+        pass

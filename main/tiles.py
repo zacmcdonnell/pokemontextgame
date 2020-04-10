@@ -1,6 +1,8 @@
 """Describes the tiles in the world space."""
 
-import items, enemies, actions, world, dialoge, os, game
+import items, enemies, actions, world, dialoge, pokemon
+from player import Player
+import random, os
 
 
 class MapTile:
@@ -72,8 +74,6 @@ class LivingRoom(MapTile):
         return "You walk into the living room as mum stands by the stove cooking eggs"
 
     def modify_player(self, the_player):
-        print("wdha")
-
         self.displayDialoge(self.__str__(), dialoge.livingRoomDialog, "MUM")
 
     def __str__(self):
@@ -94,7 +94,8 @@ class CousinsHouse(MapTile):
 
 
 class ProfsLab(MapTile):
-    locked = True
+    unlocked = False
+    tutorial = True
 
     def intro_text(self):
         return (
@@ -102,26 +103,120 @@ class ProfsLab(MapTile):
         )
 
     def modify_player(self, the_player):
-        if ProfsLab.locked:
+        if ProfsLab.unlocked and ProfsLab.tutorial:
+            dialoge.slow_type("BLUE: Gramps! I'm fed up with waiting!")
+            input()
+            self.displayDialoge(self.__str__(), dialoge.profOak, "PROF OAK")
+        elif ProfsLab.unlocked and ProfsLab.tutorial == False:
+            self.displayDialoge(self.__str__(), dialoge.profOak2, "PROF OAK")
+        else:
             dialoge.slow_type(
                 f"BLUE: Yo {the_player.name} Gramps isn't around? I ran here cos' he said he had a pokemon for me."
             )
 
+    def available_actions(self):
+        if ProfsLab.unlocked and ProfsLab.tutorial:
+            ProfsLab.tutorial = False
+            return [actions.Take(pokemon.Pikachu())]
         else:
-            print("yeet")
+            return self.adjacent_moves()
 
     def __str__(self):
         return "Oak Pokemon Research lab"
 
 
-class MysteriousPath(MapTile):
+class TallGrass(MapTile):
+    def __init__(self, x, y):
+        self.possiblePokemon = [pokemon.Pikachu(), pokemon.Metapod(), pokemon.Evee()]
+        super().__init__(x, y)
+        self.battleChance = 0.5
+        self.currentPokemon = pokemon.Pikachu()
+
+    def getRandomPokemon(self):
+        return random.choice(self.possiblePokemon)
+
+    def displayHealth(self, health, maxHealth):
+        healthDashes = maxHealth
+        # Get the number to divide by to convert health to dashes (being 10)
+        dashConvert = int(maxHealth / healthDashes)
+        # Convert health to dash count: 80/10 => 8 dashes
+        currentDashes = int(health / dashConvert)
+        # Get the health remaining to fill as space => 12 spaces
+        remainingHealth = healthDashes - currentDashes
+        # Convert 8 to 8 dashes as a string:   "--------"
+        healthDisplay = "-" * currentDashes
+        # Convert 12 to 12 spaces as a string: "            "
+        remainingDisplay = " " * remainingHealth
+        percent = str(int((health / maxHealth) * 100)) + "%"
+        # Print out textbased healthbar
+        print("   -Health   : |" + healthDisplay + remainingDisplay + "|")
+        print("                ", percent, "remaining")
+
+    def displayBattle(self, pokemon):
+        print("\n------------------------------------------------------")
+        print(pokemon.name.upper())
+        print("\nSTATS:")
+        print("   -LEVEL", pokemon.level)
+        self.displayHealth(pokemon.hp, pokemon.hp)
+
+    def battle(self):
+        print(f"A wild {self.wildPokemon.name} has appeared")
+        input("...")
+        self.displayBattle(self.wildPokemon)
+        self.displayBattle(self.currentPokemon)
+        input()
+
+    def modify_player(self, the_player):
+        if random.randint(0, 1) > self.battleChance:
+            self.wildPokemon = self.getRandomPokemon()
+            self.battle()
+            self.fight = True
+        else:
+            self.fight = False
+
+    def available_actions(self):
+        if self.fight:
+            return [
+                actions.Run(tile=self),
+                actions.Attack(enemy=self.wildPokemon),
+                actions.ViewInventory(),
+            ]
+        else:
+            return self.adjacent_moves()
+
+
+class MysteriousPath(TallGrass):
+    locked = True
+
     def intro_text(self):
         return "As you approch the town gates a mysterious path leads into the distance and you wonder what lies ahead"
 
     def modify_player(self, the_player):
-        self.displayDialoge(self.__str__(), dialoge.mysteriousPathDialog, "PROF OAK")
-        the_player.move(0,3)
-        ProfsLab.locked = False
+        if MysteriousPath.locked:
+            self.displayDialoge(
+                self.__str__(), dialoge.mysteriousPathDialog, "PROF OAK"
+            )
+            self.wildPokemon = pokemon.Pikachu()
+            input()
+            os.system("cls")
+            print(f"A wild {self.wildPokemon.name} has appeared")
+            self.displayBattle(self.wildPokemon)
+            input()
+            print("PROF. OAK USED 1x POKE BALL")
+            input()
+            print(f"All right {self.wildPokemon.name} was caught")
+            input()
+            self.displayDialoge(
+                self.__str__(), dialoge.mysteriousPathDialog2, "PROF OAK"
+            )
+            ProfsLab.unlocked = True
+
+    def available_actions(self):
+        if MysteriousPath.locked:
+            MysteriousPath.locked = False
+            return [actions.FollowProfOak()]
+        else:
+            return self.adjacent_moves()
 
     def __str__(self):
         return "Mysterious Path"
