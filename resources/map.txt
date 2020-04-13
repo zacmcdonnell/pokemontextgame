@@ -1,4 +1,8 @@
-	LivingRoom	Bedroom	
-	TownPath		
-ProfsLab	TownPath	TownPath	MysteriousPath
-	CousinsHouse		
+	LivingRoom	Bedroom						
+	PaletTown		EasyTallGrass	Pond	EasyTallGrass	FlowerPatch		
+ProfsLab	TownPath	TownPath	MysteriousPath			TownPath		
+	CousinsHouse		EasyTallGrass			Pond		
+			EasyTallGrass	FlowerPatch	EasyTallGrass	TownPath		
+						ViridianCity		
+						TownPath	PokeMart	PokeCenter
+						TownPath		TownPath

@@ -1,5 +1,6 @@
 from progress.bar import Bar
 
-bar = Bar("Processing", max=20)
+import progress
 
-    bar.()
+
+bar = Bar("Processing", max=20)

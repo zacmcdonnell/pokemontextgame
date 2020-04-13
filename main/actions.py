@@ -1,4 +1,5 @@
 from player import Player
+import attacks
 
 
 class Action:
@@ -54,8 +55,15 @@ class Take(Action):
 
 
 class Attack(Action):
-    def __init__(self, enemy):
-        super().__init__(method=Player.attack, name="Attack", hotkey="a", enemy=enemy)
+    def __init__(self, wildPokemon):
+        super().__init__(
+            method=Player.attack, name="Attack", hotkey="a", wildPokemon=wildPokemon
+        )
+
+
+class ChooseAttack(Action):
+    def __init__(self, i):
+        super().__init__(method=Player.attack, name=i.name, hotkey=i.name[0])
 
 
 class Run(Action):

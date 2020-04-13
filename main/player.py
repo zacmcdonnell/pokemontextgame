@@ -1,5 +1,6 @@
 import random
 import items, world
+import pokemon
 
 
 class Player:
@@ -8,7 +9,7 @@ class Player:
         self.inventory = [items.Gold(15), items.Rock()]
         self.hp = 100
         self.location_x, self.location_y = world.starting_position
-        self.pokemon = []
+        self.pokemon = [pokemon.Pikachu()]
         self.victory = False
 
     def is_alive(self):
@@ -44,7 +45,7 @@ class Player:
             if i.hp > 0:
                 return i
             else:
-                print("not more alive pokemon")
+                print("no more alive pokemon")
 
     def capturePokemon(self, wildPokemon):
         captureChance = 0.5
@@ -65,7 +66,11 @@ class Player:
         self.location_y = 2
 
     def attack(self, wildPokemon):
-        pass
+
+        for i in self.get_current_pokemon().possibleAttacks:
+            print(" -", i.upper())
+        input
+
         """
     def attack(self, enemy):
         best_weapon = None
@@ -85,4 +90,5 @@ class Player:
     """
 
     def run(self, tile):
-        pass
+        print("Got away safetly!")
+        tile.fight = False

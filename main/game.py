@@ -2,66 +2,44 @@ import world
 from player import Player
 import os
 import dialoge
+import util
 
 
 class Game:
     def __init__(self):
-        self.gamePlaying = True
         world.load_tiles()
         self.player = Player()
-        # self.start()
+        # util.welcome(self.player)
+
         self.main()
 
-    def getActions(self):
-        print("\nChoose an action:\n")
-        available_actions, locations = self.room.available_actions()
-        for action, location in zip(available_actions, locations):
-            print(f"{action} ({location.__str__()})")
-        action_input = input("Action: ")
-        for action in available_actions:
-            if action_input == action.hotkey:
-                os.system("cls")
-                self.player.do_action(action, **action.kwargs)
-                break
+    def gamePlaying(self):
+        if self.player.victory:
+            if self.player.is_alive():
+                return True
+            else:
+                print("Sad you died ")
+        print("you won")
 
     def main(self):
-        # self.player.location_x = 3
-        # self.player.location_y = 2
+
+        self.player.location_x = 3
+        self.player.location_y = 3
+
         while self.gamePlaying:
-            if not self.player.is_alive() and not self.player.victory:
-                print("ded")
-            else:
-                self.room = world.tile_exists(
-                    self.player.location_x, self.player.location_y
-                )
-                print(self.room.__str__().upper().center(60, "-"))
-                print(self.room.intro_text())
-                input("...")
-                self.room.modify_player(self.player)
-                self.getActions()
-                input("...")
-                os.system("cls")
-
-    def start(self):
-        # intialise the game and display welcome screen
-        os.system("cls")
-
-        message = dialoge.tutorial.split("\n")
-        for i in range(len(message)):
-            print("WELCOME TO POKEMON".center(60, "-"))
-            print()
-            print("PROF. OAK:")
-            dialoge.slow_type(message[i])
-
-            if i == 7:
-                self.player.name = input("> ")
-                dialoge.slow_type("Right! So your name is " + self.player.name + "!")
-            elif i == 10:
-                name = input()
-                dialoge.slow_type(
-                    "That's right! I remember now! His name is " + name + "!"
-                )
+            self.room = world.tile_exists(
+                self.player.location_x, self.player.location_y
+            )
+            print(self.room.__str__().upper().center(60, "-"))
+            print(self.room.intro_text())
             input()
+            util.displayDialoge(
+                self.room.__str__(), self.room.display_dialoge(self.player)
+            )
+
+            self.room.modify_player(self.player)
+            util.getActions(self.room, self.player)
+            input("...")
             os.system("cls")
 
 

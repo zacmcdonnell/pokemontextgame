@@ -1,6 +1,6 @@
 """Describes the tiles in the world space."""
 
-import items, enemies, actions, world, dialoge, pokemon
+import items, enemies, actions, world, dialoge, pokemon, util
 from player import Player
 import random, os
 
@@ -21,9 +21,13 @@ class MapTile:
         """Information to be displayed when the player moves into this tile."""
         raise NotImplementedError()
 
+    def display_dialoge(self, the_player):
+        """Print the dialoge of the npc"""
+        pass
+
     def modify_player(self, the_player):
         """Process actions that change the state of the player."""
-        raise NotImplementedError()
+        pass
 
     def adjacent_moves(self):
 
@@ -50,25 +54,11 @@ class MapTile:
 
         return moves, rooms
 
-    def displayDialoge(self, locName, message, talking):
-        message = message.split("\n")
-        for i in range(len(message)):
-            os.system("cls")
-            print(locName.upper().center(60, "-"))
-
-            print(talking.upper() + ":")
-            dialoge.slow_type(message[i])
-            input()
-
 
 class Bedroom(MapTile):
     def intro_text(self):
         return """You wake up with dreary eyes and get out of bed.
 Breakfast is in the living room"""
-
-    def modify_player(self, the_player):
-        # Room has no action on player
-        pass
 
     def __str__(self):
         return "Bedroom"
@@ -78,8 +68,8 @@ class LivingRoom(MapTile):
     def intro_text(self):
         return "You walk into the living room as mum stands by the stove cooking eggs"
 
-    def modify_player(self, the_player):
-        self.displayDialoge(self.__str__(), dialoge.livingRoomDialog, "MUM")
+    def display_dialoge(self, the_player):
+        return dialoge.livingRoomDialog
 
     def __str__(self):
         return "Living room"
@@ -89,10 +79,8 @@ class CousinsHouse(MapTile):
     def intro_text(self):
         return "You open the door to your couin BLUE's house and see his sister kniting"
 
-    def modify_player(self, the_player):
-        dialoge.slow_type(
-            f"BLUE'S SISTER: Hi {the_player.name}! BLUE is out at Grandpa's lab."
-        )
+    def display_dialoge(self, the_player):
+        return f"BLUE'S SISTER: Hi {the_player.name}! BLUE is out at Grandpa's lab."
 
     def __str__(self):
         return "Blue's house"
@@ -107,22 +95,20 @@ class ProfsLab(MapTile):
             "You walk into a massive labratory and the scientist greet you as you enter"
         )
 
-    def modify_player(self, the_player):
+    def display_dialoge(self, the_player):
         if ProfsLab.unlocked and ProfsLab.tutorial:
             dialoge.slow_type("BLUE: Gramps! I'm fed up with waiting!")
             input()
-            self.displayDialoge(self.__str__(), dialoge.profOak, "PROF OAK")
+            return dialoge.profOak
         elif ProfsLab.unlocked and ProfsLab.tutorial == False:
-            self.displayDialoge(self.__str__(), dialoge.profOak2, "PROF OAK")
+            return dialoge.profOak2
         else:
-            dialoge.slow_type(
-                f"BLUE: Yo {the_player.name} Gramps isn't around? I ran here cos' he said he had a pokemon for me."
-            )
+            return f"BLUE: \nYo {the_player.name} Gramps isn't around? I ran here cos' he said he had a pokemon for me."
 
     def available_actions(self):
         if ProfsLab.unlocked and ProfsLab.tutorial:
             ProfsLab.tutorial = False
-            return [actions.Take(pokemon.Pikachu())]
+            return [actions.Take(pokemon.Pikachu())], ["PIKACHU"]
         else:
             return self.adjacent_moves()
 
@@ -130,15 +116,9 @@ class ProfsLab(MapTile):
         return "Oak Pokemon Research lab"
 
 
-class TallGrass(MapTile):
+class Battle(MapTile):
     def __init__(self, x, y):
-        self.possiblePokemon = []
         super().__init__(x, y)
-        self.battleChance = 0.5
-        self.currentPokemon = Player.get_current_pokemon
-
-    def getRandomPokemon(self):
-        return random.choice(self.possiblePokemon)
 
     def displayHealth(self, health, maxHealth):
         healthDashes = maxHealth
@@ -161,70 +141,89 @@ class TallGrass(MapTile):
         print("\n------------------------------------------------------")
         print(pokemon.name.upper())
         print("\nSTATS:")
-        print("   -LEVEL", pokemon.level)
+        # print("   -LEVEL", pokemon.level)
         self.displayHealth(pokemon.hp, pokemon.hp)
 
-    def battle(self):
-        print(f"A wild {self.wildPokemon.name} has appeared")
-        input("...")
-        self.displayBattle(self.wildPokemon)
-        self.displayBattle(self.currentPokemon)
-        input()
+
+class TallGrass(Battle):
+    def __init__(self, x, y, possiblePokemon, levelMIN, levelMAX, battleChance):
+        super().__init__(x, y)
+        self.possiblePokemon = possiblePokemon
+        self.levelMIN = levelMIN
+        self.levelMAX = levelMAX
+        self.battleChance = battleChance
+
+    def intro_text(self):
+        return "You reach through the thick grass unable to see upahead"
+
+    def getRandomPokemon(self):
+        return random.choice(self.possiblePokemon)
+
+    def battle(self, player):
+        while self.fight:
+
+            self.displayBattle(self.wildPokemon)
+            self.displayBattle(self.currentPokemon)
+            input()
+            util.getActions(self, player)
 
     def modify_player(self, the_player):
         if random.randint(0, 1) > self.battleChance:
+            self.currentPokemon = Player.get_current_pokemon(the_player)
             self.wildPokemon = self.getRandomPokemon()
-            self.battle()
+            input(f"A wild {self.wildPokemon.name} has appeared")
+            input(f"GO! {self.currentPokemon.name}!")
             self.fight = True
+
+            self.battle(the_player)
+
         else:
             self.fight = False
 
     def available_actions(self):
         if self.fight:
-            return [
-                actions.Run(tile=self),
-                actions.Attack(enemy=self.wildPokemon),
-                actions.ViewInventory(),
-            ]
+            return (
+                [
+                    actions.Run(tile=self),
+                    actions.Attack(wildPokemon=self.wildPokemon),
+                    actions.ViewInventory(),
+                ],
+                ["Leave battle", "Select Attacks", "View Inventory"],
+            )
         else:
             return self.adjacent_moves()
 
+    def __str__(self):
+        return "Tall Grass"
+
 
 class EasyTallGrass(TallGrass):
-    def __init__(self):
-        self.possiblePokemon = [pokemon.Metapod(), pokemon.Evee()]
+    def __init__(self, x, y):
+        super().__init__(
+            x,
+            y,
+            possiblePokemon=[pokemon.Metapod(), pokemon.Evee()],
+            levelMIN=2,
+            levelMAX=4,
+            battleChance=0.4,
+        )
 
 
-class MysteriousPath(TallGrass):
+class MysteriousPath(MapTile):
     locked = True
 
     def intro_text(self):
         return "As you approch the town gates a mysterious path leads into the distance and you wonder what lies ahead"
 
-    def modify_player(self, the_player):
+    def display_dialoge(self, the_player):
         if MysteriousPath.locked:
-            self.displayDialoge(
-                self.__str__(), dialoge.mysteriousPathDialog, "PROF OAK"
-            )
-            self.wildPokemon = pokemon.Pikachu()
-            input()
-            os.system("cls")
-            print(f"A wild {self.wildPokemon.name} has appeared")
-            self.displayBattle(self.wildPokemon)
-            input()
-            print("PROF. OAK USED 1x POKE BALL")
-            input()
-            print(f"All right {self.wildPokemon.name} was caught")
-            input()
-            self.displayDialoge(
-                self.__str__(), dialoge.mysteriousPathDialog2, "PROF OAK"
-            )
             ProfsLab.unlocked = True
+            return dialoge.mysteriousPathDialog
 
     def available_actions(self):
         if MysteriousPath.locked:
             MysteriousPath.locked = False
-            return [actions.FollowProfOak()]
+            return [actions.FollowProfOak()], ["Oak Pokemon Research lab"]
         else:
             return self.adjacent_moves()
 
@@ -232,17 +231,63 @@ class MysteriousPath(TallGrass):
         return "Mysterious Path"
 
 
+class PaletTown(MapTile):
+    def intro_text(self):
+        return "Shades of your journey await.."
+
+    def __str__(self):
+        return "Palet Town"
+
+
+class ViridianCity(MapTile):
+    def intro_text(self):
+        return "The eternally Green Paradise"
+
+    def __str__(self):
+        return "Palet Town"
+
+
 class TownPath(MapTile):
     def intro_text(self):
         return "You walk along the path"
-
-    def modify_player(self, the_player):
-        pass
 
     def __str__(self):
         return "Path"
 
 
+class Pond(MapTile):
+    def intro_text(self):
+        return "You walk past a picturesque pond"
+
+    def __str__(self):
+        return "Pond"
+
+
+class FlowerPatch(MapTile):
+    def intro_text(self):
+        return "A field of flowers spans as far as the eye can see "
+
+    def __str__(self):
+        return "Flower Patch"
+
+
+class PokeMart(MapTile):
+    def intro_text(self):
+        return "A field of flowers spans as far as the eye can see "
+
+    def __str__(self):
+        return "Poke Mart"
+
+
+class PokeCenter(MapTile):
+    def intro_text(self):
+        return "A field of flowers spans as far as the eye can see "
+
+    def __str__(self):
+        return "Poke Center"
+
+
+'''
 class EmptyCavePath(MapTile):
     def intro_text(self):
         return """
@@ -372,3 +417,4 @@ class LeaveCaveRoom(MapTile):
 
     def modify_player(self, player):
         player.victory = True
+'''
