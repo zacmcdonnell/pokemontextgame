@@ -9,7 +9,7 @@ class Game:
     def __init__(self):
         world.load_tiles()
         self.player = Player()
-        # util.welcome(self.player)
+        util.welcome(self.player)
 
         self.main()
 
@@ -22,9 +22,6 @@ class Game:
         print("you won")
 
     def main(self):
-
-        self.player.location_x = 3
-        self.player.location_y = 3
 
         while self.gamePlaying:
             self.room = world.tile_exists(
