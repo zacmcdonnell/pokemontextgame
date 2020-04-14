@@ -5,6 +5,9 @@ class Attack:
         self.damage = damage
         self.levelRequired = levelRequired
 
+    def attack(self, pokemon):
+        pokemon.hp -= self.damage
+
 
 class Growl(Attack):
     def __init__(self):

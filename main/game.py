@@ -38,7 +38,8 @@ class Game:
             )
 
             self.room.modify_player(self.player)
-            util.getActions(self.room, self.player)
+            available_actions, locations = self.room.available_actions()
+            util.getActions(available_actions, locations, self.player)
             input("...")
             os.system("cls")
 

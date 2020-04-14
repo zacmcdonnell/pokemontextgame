@@ -123,16 +123,19 @@ class Battle(MapTile):
     def displayHealth(self, health, maxHealth):
         healthDashes = maxHealth
         # Get the number to divide by to convert health to dashes (being 10)
-        dashConvert = int(maxHealth / healthDashes)
-        # Convert health to dash count: 80/10 => 8 dashes
-        currentDashes = int(health / dashConvert)
-        # Get the health remaining to fill as space => 12 spaces
-        remainingHealth = healthDashes - currentDashes
-        # Convert 8 to 8 dashes as a string:   "--------"
-        healthDisplay = "-" * currentDashes
-        # Convert 12 to 12 spaces as a string: "            "
-        remainingDisplay = " " * remainingHealth
-        percent = str(int((health / maxHealth) * 100)) + "%"
+        try:
+            dashConvert = int(maxHealth / healthDashes)
+            # Convert health to dash count: 80/10 => 8 dashes
+            currentDashes = int(health / dashConvert)
+            # Get the health remaining to fill as space => 12 spaces
+            remainingHealth = healthDashes - currentDashes
+            # Convert 8 to 8 dashes as a string:   "--------"
+            healthDisplay = "-" * currentDashes
+            # Convert 12 to 12 spaces as a string: "            "
+            remainingDisplay = " " * remainingHealth
+            percent = str(int((health / maxHealth) * 100)) + "%"
+        except ZeroDivisionError:
+            pass
         # Print out textbased healthbar
         print("   -Health   : |" + healthDisplay + remainingDisplay + "|")
         print("                ", percent, "remaining")
@@ -142,7 +145,7 @@ class Battle(MapTile):
         print(pokemon.name.upper())
         print("\nSTATS:")
         # print("   -LEVEL", pokemon.level)
-        self.displayHealth(pokemon.hp, pokemon.hp)
+        self.displayHealth(pokemon.hp, pokemon.maxHp)
 
 
 class TallGrass(Battle):
@@ -161,16 +164,37 @@ class TallGrass(Battle):
 
     def battle(self, player):
         while self.fight:
-
             self.displayBattle(self.wildPokemon)
             self.displayBattle(self.currentPokemon)
             input()
-            util.getActions(self, player)
+            util.getActions(
+                [
+                    actions.Run(tile=self),
+                    actions.Attack(wildPokemon=self.wildPokemon),
+                    actions.ViewInventory(),
+                ],
+                ["Leave battle", "Select Attacks", "View Inventory"],
+                player,
+            )
+            input()
+            enemyAttack = self.wildPokemon.getHighestAttack()
+            self.currentPokemon.hp -= enemyAttack.damage
+            print(f"\n{self.wildPokemon.name} used {enemyAttack.name}!")
+
+            if self.wildPokemon.hp <= 0:
+                print(f"Enemy {self.wildPokemon.name} fainted!")
+                self.fight = False
+            elif self.currentPokemon.hp <= 0:
+                print(f"oh no {self.currentPokemon.name} fainted!")
+                player.hp = 0
+                self.fight = False
 
     def modify_player(self, the_player):
         if random.randint(0, 1) > self.battleChance:
             self.currentPokemon = Player.get_current_pokemon(the_player)
             self.wildPokemon = self.getRandomPokemon()
+            self.wildPokemon.maxHp = self.wildPokemon.hp
+            self.currentPokemon.maxHp = self.currentPokemon.hp
             input(f"A wild {self.wildPokemon.name} has appeared")
             input(f"GO! {self.currentPokemon.name}!")
             self.fight = True
@@ -179,19 +203,6 @@ class TallGrass(Battle):
 
         else:
             self.fight = False
-
-    def available_actions(self):
-        if self.fight:
-            return (
-                [
-                    actions.Run(tile=self),
-                    actions.Attack(wildPokemon=self.wildPokemon),
-                    actions.ViewInventory(),
-                ],
-                ["Leave battle", "Select Attacks", "View Inventory"],
-            )
-        else:
-            return self.adjacent_moves()
 
     def __str__(self):
         return "Tall Grass"
@@ -244,7 +255,7 @@ class ViridianCity(MapTile):
         return "The eternally Green Paradise"
 
     def __str__(self):
-        return "Palet Town"
+        return "Viridian City"
 
 
 class TownPath(MapTile):

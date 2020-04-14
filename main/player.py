@@ -1,6 +1,7 @@
-import random
+import random, os
 import items, world
 import pokemon
+import util
 
 
 class Player:
@@ -46,6 +47,7 @@ class Player:
                 return i
             else:
                 print("no more alive pokemon")
+                self.hp = 0
 
     def capturePokemon(self, wildPokemon):
         captureChance = 0.5
@@ -66,10 +68,18 @@ class Player:
         self.location_y = 2
 
     def attack(self, wildPokemon):
+        possibleAttacks = self.get_current_pokemon().possibleAttacks
 
-        for i in self.get_current_pokemon().possibleAttacks:
-            print(" -", i.upper())
-        input
+        print("\nChoose an action:\n")
+
+        for attack in possibleAttacks:
+            print(f"{attack.name[0].lower()}: {attack.name} ")
+
+        action_input = input("Action: ").lower()
+        for action in possibleAttacks:
+            if action_input == action.name[0].lower():
+                print(f"\n{self.get_current_pokemon().name} used {action.name}!")
+                action.attack(wildPokemon)
 
         """
     def attack(self, enemy):

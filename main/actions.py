@@ -61,11 +61,6 @@ class Attack(Action):
         )
 
 
-class ChooseAttack(Action):
-    def __init__(self, i):
-        super().__init__(method=Player.attack, name=i.name, hotkey=i.name[0])
-
-
 class Run(Action):
     def __init__(self, tile):
         super().__init__(method=Player.run, name="Run", hotkey="r", tile=tile)

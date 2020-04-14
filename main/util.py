@@ -23,11 +23,10 @@ def welcome(player):
         os.system("cls")
 
 
-def getActions(room, player):
+def getActions(available_actions, toolTips, player):
     print("\nChoose an action:\n")
-    available_actions, locations = room.available_actions()
-    for action, location in zip(available_actions, locations):
-        print(f"{action} ({location.__str__()})")
+    for action, toolTip in zip(available_actions, toolTips):
+        print(f"{action} ({toolTip})")
 
     action_input = input("Action: ")
     for action in available_actions:
